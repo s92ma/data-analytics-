@@ -60,9 +60,9 @@ summary(trainingETS)
 predictETS<-forecast(trainingETS,h=17544)
 accuracy(predictETS$mean,testing)
 
-#TSML MODEL
+#TSLM MODEL
 trainingTslm<-tslm(Toronto~trend+season,data=training)
 summary(trainingTslm)
-predictTesting3<-forecast(trainingTslm,h=17544)
-accuracy(predictTesting3$mean,testing)
+predictTslm<-forecast(trainingTslm,h=17544)
+accuracy(predictTslm$mean,testing)
 #
