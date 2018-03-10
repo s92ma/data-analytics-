@@ -260,7 +260,7 @@ accuracy(forecastedTslm, testing)
 forecastedSES<-ses(training,initial="optimal",h=17544)
 accuracy(forecastedSES,testing)
 
-forecastHolt<-holt(training,initial="optimal", h=17544)
+forecastedHolt<-holt(training,initial="optimal", h=17544)
 accuracy(forecastedHolt, testing)
 
 forecastedHW<-hw(training, initial = "optimal", h=17544)
