@@ -4,22 +4,43 @@ library(astsa)
 library(aTSA)
 library(zoo)
 library(stats)
-#initial analysis of the data (plots, statistical analysis, etc..)
+library(anytime)
+#•••Initial analysis of the data (plots, statistical analysis, etc..)
 projectData<-read.csv("input_data_team_9.csv")
 #projectData<-read.csv("input_data_team_9_processed.csv")
-torontoData<-data.frame(Toronto=projectData[,8])
-torontoData<-torontoData[-c(1:5880),]
-torontoData.ts<-ts(torontoData)
-plot(torontoData.ts,xlab="xth hour",ylab="Electricity Demand",main="Hourly Eletricity Demand in Toronto")
-
-
-projectData<-read.csv("input_data_team_9_processed.csv")
-torontoData<-data.frame(Toronto=projectData[,8])
-torontoData<-torontoData[-c(1:5880),]
-torontoData.ts<-ts(torontoData)
-plot(torontoData.ts,xlab="xth hour",ylab="Electricity Demand",main="Hourly Eletricity Demand in Toronto - Adjusted")
-
-acf(torontoData.ts, main="ACF of Hourly Eletricity Demand in Toronto - Adjusted")
+torontoData<-data.frame(Date=projectData[,1],Hour=projectData[,2],Toronto=projectData[,8])
+torontoData.ts<-torontoData[-c(1:5880),]
+#torontoDataDate<-torontoData[,1]
+torontoData.ts[,3]<-ts(torontoData.ts[,3])
+#torontoData.ts[,1]<-anytime::anydate(torontoData.ts[,1])
+#head(torontoData.ts)
+par(mfrow=c(1,1))
+plot(torontoData.ts[,3],xlab="xth hour",ylab="Electricity Demand",main="Hourly Eletricity Demand in Toronto")
+#Substitute outliers with value of 0 using moving median method.
+for(index in 1:nrow(torontoData.ts))
+{
+  if(torontoData.ts[index,3]==0)
+  {
+    torontoData.ts[index,3]<-median(torontoData.ts[(index-24):(index-1),3])
+    print(index)
+  }
+}
+#View(torontoData.ts)
+#for(index in 1:length(torontoData.ts))
+#{
+#  if(torontoData.ts[index]==0)
+#  {
+#    print(index)
+#  }
+#}
+#View(torontoData.ts)
+#projectData<-read.csv("input_data_team_9_processed.csv")
+#torontoData<-data.frame(Toronto=projectData[,8])
+#torontoData<-torontoData[-c(1:5880),]
+#torontoData.ts<-ts(torontoData)
+#plot(torontoData.ts,xlab="xth hour",ylab="Electricity Demand",main="Hourly Eletricity Demand in Toronto - Adjusted")
+#ts(torontoData[,2])
+acf(torontoData.ts[,3], main="ACF of Hourly Eletricity Demand in Toronto - Adjusted")
 find.freq <- function(x)
 {
   n <- length(x)
@@ -43,57 +64,52 @@ find.freq <- function(x)
     period <- 1
   return(period)
 }
-find.freq(torontoData.ts)
-torontoData.ts<-ts(torontoData,frequency=24)
-boxplot(torontoData.ts~cycle(torontoData.ts))
-
-
+find.freq(torontoData.ts[,3])
+#attr(torontoData.ts[,2],'frequency')<-24
+#torontoData.ts[,2]=ts(torontoData.ts[,2],frequency=24)
+#torontoData.ts<-ts(torontoData,frequency=24)
+torontoData.ts[,3]<-ts(torontoData.ts[,3],start=c(1,1),end=c(5114,24),frequency=24)
+#is.ts(torontoData.ts[,2])
+boxplot(torontoData.ts[,3]~cycle(torontoData.ts[,3]))
 #plot(decompose(torontoData.ts))
 #torontoData.ts.day<-aggregate(torontoData.ts,nfrequency=1)
 #plot(torontoData.ts.day)
 par(mfrow=c(2,2))
-plot(torontoData.ts,main="Original Data")
-plot(torontoData.ts,col="gray",main="1 Day Moving Average")
-lines(ma(torontoData.ts,order=24),col="red",lwd=1)
-plot(torontoData.ts,col="gray",main="1 Week Moving Average")
-lines(ma(torontoData.ts,order=168),col="blue",lwd=1)
-plot(torontoData.ts,col="gray",main="1 Year Moving Average")
-lines(ma(torontoData.ts,order=8766),col="green",lwd=1)
-
-
-
+plot(torontoData.ts[,2],main="Original Data")
+plot(torontoData.ts[,2],col="gray",main="1 Day Moving Average")
+lines(ma(torontoData.ts[,2],order=24),col="red",lwd=1)
+plot(torontoData.ts[,2],col="gray",main="1 Week Moving Average")
+lines(ma(torontoData.ts[,2],order=168),col="blue",lwd=1)
+plot(torontoData.ts[,2],col="gray",main="1 Year Moving Average")
+lines(ma(torontoData.ts[,2],order=8766),col="green",lwd=1)
 #par(mfrow = c(2,2))
 #plot(torontoData.ts, main = "Original Data")
 #plot(diff(torontoData.ts,1), main = "Detrended data")
 #plot(diff(torontoData.ts, 24), main = "Seasonally adjusted data")
 #plot (diff(diff(torontoData.ts,1), 24), main = "Seasonally adj. and detrended data")
 
-#statiscal analysis
+#•••statiscal analysis
 #plot(decompose(torontoData.ts))
 #plot(stl(torontoData.ts,s.window="periodic"))
-
-mean(torontoData.ts)
-var(torontoData.ts)
-
-
-
+mean(torontoData.ts[,3])
+var(torontoData.ts[,3])
 #?????summary(auto.arima(torontoData.ts,approximation = FALSE))
 #?????acf(torontoData.ts)
 #?????acf(diff(torontoData.ts))
 #?????acf(diff(diff(torontoData.ts),24))
 #?????acf(diff(diff(diff(torontoData.ts),24),168))
-torontoData.ts<-ts(torontoData,start=c(1,1),end=c(5359,24),frequency=24)
 
+#•••Dividing the data to a training set and a test set
+#View(torontoData.ts)
+training<-torontoData.ts[-c(105193:122736),]
+testing<-torontoData.ts[c(105193:122736),]
+training.ts<-ts(training[,3],frequency=24)
+testing.ts<-ts(testing[,3],frequency=24)
 
-#Dividing the data to a training set and a test set
-
-View(torontoData.ts)
-training<-window(torontoData.ts,end=c(4383,24))
-testing<-window(torontoData.ts,start=c(4384,1))
-
-#Linear Regression
+#•••Modeling
+#••Linear Regression
 #View(training)
-trainingTslm<-tslm(training~trend+season)
+trainingTslm<-tslm(training.ts~trend+season)
 summary(trainingTslm)
 #plot(torontoData.ts,col="gray",main="Training Data")
 #lines(traingTslm,col="red",lwd=1)
@@ -104,14 +120,13 @@ summary(trainingTslm$residuals)
 qqnorm(trainingTslm$residuals)
 qqline(trainingTslm$residuals)
 hist(trainingTslm$residuals)
-
 acf(trainingTslm$residuals)
 
 
-#Smothing method
+#••Smothing method
 
 #SES
-trainingSES<-ses(training,initial="optimal")
+trainingSES<-ses(training.ts,initial="optimal")
 summary(trainingSES)
 summary(trainingSES$residuals)
 
@@ -125,7 +140,7 @@ acf(trainingSES$residuals, main="ACF for SES Model")
 #lines(trainingSES$fitted,col="blue",lwd=1,lyt)
 
 #Holt
-trainingHolt<-holt(training,initial="optimal")
+trainingHolt<-holt(training.ts,initial="optimal")
 summary(trainingHolt)
 summary(trainingHolt$residuals)
 qqnorm(trainingHolt$residuals,main="Notmal QQ Plot for HOLT Model")
@@ -133,9 +148,8 @@ qqline(trainingHolt$residuals)
 hist(trainingHolt$residuals,main="Histogram for HOLT Model")
 acf(trainingHolt$residuals, main="ACF for HOLT Model")
 
-
 #HW
-trainingHW<-hw(training,initial="optimal")
+trainingHW<-hw(training.ts,initial="optimal")
 summary(trainingHW)
 summary(trainingHW$residuals)
 qqnorm(trainingHW$residuals, main="Notmal QQ Plot for HW Model")
@@ -143,9 +157,8 @@ qqline(trainingHW$residuals)
 hist(trainingHW$residuals, main="Histogram for HW Model")
 acf(trainingHW$residuals, main="ACF for HW Model")
 
-
 #ETS MODEL
-trainingETS<-ets(training)
+trainingETS<-ets(training.ts)
 summary(trainingETS)
 summary(trainingETS$residuals)
 qqnorm(trainingETS$residuals, main="Notmal QQ Plot for ETS Model")
@@ -153,9 +166,30 @@ qqline(trainingETS$residuals)
 hist(trainingETS$residuals, main="Histogram for ETS Model")
 acf(trainingETS$residuals, main="ACF for ETS Model")
 
+#••ARIMA MODEL
+acf(training.ts)
+pacf(training.ts)
+acf(diff(training.ts,24))
+acf(diff(diff(training.ts,24)))
+pacf(diff(diff(training.ts,24)))
 
-#ARIMA MODEL
-
+acf(seasadj(stl(training,s.window="periodic")))
+pacf(seasadj(stl(training,s.window="periodic")))
+acf(diff(training))
+pacf(diff(training))
+acf(diff(diff(diff(diff(diff(diff(diff(diff(diff(diff(seasadj(stl(training,s.window="periodic"))),5),3),8),13),24),11),19),15),29))
+find.freq(diff(seasadj(stl(training,s.window="periodic"))))
+find.freq(diff(diff(seasadj(stl(training,s.window="periodic"))),5))
+find.freq(diff(diff(diff(seasadj(stl(training,s.window="periodic"))),5),3))
+find.freq(diff(diff(diff(diff(seasadj(stl(training,s.window="periodic"))),5),3),8))
+find.freq(diff(diff(diff(diff(diff(seasadj(stl(training,s.window="periodic"))),5),3),8),13))
+find.freq(diff(diff(diff(diff(diff(diff(seasadj(stl(training,s.window="periodic"))),5),3),8),13),24))
+find.freq(diff(diff(diff(diff(diff(diff(diff(seasadj(stl(training,s.window="periodic"))),5),3),8),13),24),11))
+find.freq(diff(diff(diff(diff(diff(diff(diff(diff(seasadj(stl(training,s.window="periodic"))),5),3),8),13),24),11),19))
+find.freq(diff(diff(diff(diff(diff(diff(diff(diff(diff(seasadj(stl(training,s.window="periodic"))),5),3),8),13),24),11),19),15))
+find.freq(diff(diff(diff(diff(diff(diff(diff(diff(diff(diff(seasadj(stl(training,s.window="periodic"))),5),3),8),13),24),11),19),15),29))
+acf(decompose(training)$x)
+?decompose
 
 plot(stl(training,s.window='periodic'))
 acf(stl(training,s.window='periodic'))
@@ -239,9 +273,11 @@ find.arima<-function(x)
   }
 }
 
+trainingARIMA2<-arima(training.ts,order=c(2,0,3),seasonal=list(order=c(2,0,3),period=24))
 
 
-trainingARIMA<-auto.arima(training, approximation = FALSE)
+
+trainingARIMA<-auto.arima(training.ts, approximation = FALSE)
 summary(trainingARIMA)
 
 
@@ -255,25 +291,25 @@ acf(trainingARIMA$residuals, main="ACF for autoARIMA Model")
 
 
 forecastedTslm<-forecast(trainingTslm,h=17544)
-accuracy(forecastedTslm, testing)
+accuracy(forecastedTslm, testing.ts)
 
-forecastedSES<-ses(training,initial="optimal",h=17544)
-accuracy(forecastedSES,testing)
+forecastedSES<-ses(training.ts,initial="optimal",h=17544)
+accuracy(forecastedSES,testing.ts)
 
-forecastedHolt<-holt(training,initial="optimal", h=17544)
-accuracy(forecastedHolt, testing)
+forecastHolt<-holt(training.ts,initial="optimal", h=17544)
+accuracy(forecastedHolt, testing.ts)
 
-forecastedHW<-hw(training, initial = "optimal", h=17544)
-accuracy(forecastedHW,testing)
+forecastedHW<-hw(training.ts, initial = "optimal", h=17544)
+accuracy(forecastedHW,testing.ts)
 
-forecastedETS<-ets(training,h=17544)
-accuracy(forecastedETS,testing)
-
-forecastedARIMA<-forecast(trainingARIMA,h=17544)
-accuracy(forecastedARIMA,testing)
+forecastedETS<-ets(training.ts,h=17544)
+accuracy(forecastedETS,testing.ts)
 
 forecastedARIMA<-forecast(trainingARIMA,h=17544)
-accuracy(forecastedARIMA,testing)
+accuracy(forecastedARIMA,testing.ts)
+
+forecastedARIMA<-forecast(trainingARIMA,h=17544)
+accuracy(forecastedARIMA,testing.ts)
 
 fore
 
