@@ -92,10 +92,10 @@ find.freq(torontoData.ts.26week)
 
 
 
-torontoData.ts.dayTslm<-tslm(torontoData.ts.day~trend+season)
-find.freq(torontoData.ts.day)
+#torontoData.ts.dayTslm<-tslm(torontoData.ts.day~trend+season)
+#find.freq(torontoData.ts.day)
 
-plot(torontoData.ts[,3],col="gray")
+#plot(torontoData.ts[,3],col="gray")
 
 
 torontoData.ts[,3]<-ts(torontoData.ts[,3],start=c(1,1),frequency=24)
@@ -106,7 +106,7 @@ boxplot(torontoData.ts[,3]~cycle(torontoData.ts[,3]))
 #plot(torontoData.ts.day)
 
 #??????????????????????Stationary has seasonality?
-acf(torontoData.ts[,3], main="ACF of Hourly Eletricity Demand in Toronto - Adjusted")
+acf(torontoData.ts[,3], main="ACF of Hourly Eletricity Demand in Toronto - Outliers Replaced")
 #adf.test(torontoData.ts[,3])
 #???? Do we need to forecast the future data even after forecasting the test set.
 #??????training performance = best V.S. test not = best
@@ -152,6 +152,9 @@ lines(c(1:length(torontoData.ts[,3])),sampleMean,col="red",lty=3)
 sampleMedian<-median(torontoData.ts[,3])
 sampleMedian
 
+
+
+
 #Sample Mode
 getmode <- function(v) {
   uniqv <- unique(v)
@@ -177,10 +180,13 @@ sampleSD
 par(mfrow=c(1,1))
 #plot(c(1:length(torontoData.ts[,3])),torontoData.ts[,3],col="gray",main="95% Confidene Interval for Toronto Data Population Mean")
 plot(torontoData.ts[,3],col="gray",main="95% Confidene Interval for Toronto Data")
+rm(sampleMean)
+sampleMean<-mean(torontoData.ts[,3])
+
 lowerBound=seq(sampleMean-2*sampleSD,sampleMean-2*sampleSD,length.out = length(torontoData.ts[,3]))
 upperBound=seq(sampleMean+2*sampleSD,sampleMean+2*sampleSD,length.out = length(torontoData.ts[,3]))
-lines(c(1:length(torontoData.ts[,3])),lowerBound,col="red",lty=3)
-lines(c(1:length(torontoData.ts[,3])),upperBound,col="red",lty=3)
+lines(c(1:length(torontoData.ts[,3])),lowerBound,col="red",lty=2)
+lines(c(1:length(torontoData.ts[,3])),upperBound,col="red",lty=2)
 
 
 #Sample CV
@@ -211,16 +217,19 @@ testing.ts<-ts(testing[,3],frequency=24)
 #•••Modeling
 #••Linear Regression
 #View(training)
+acf(training.ts)
+
 trainingTslm<-tslm(training.ts~trend+season)
-
-t <- seq(1, length(training.ts), length = length(training.ts))
-t2 <- t^2
-
+#t <- seq(1, length(training.ts), length = length(training.ts))
+#t<-ts(t,frequency=24)
+#t2 <- t^2
+#t2<-ts(t2,frequency=24)
 #t
-sin.t <- sin(2*pi*t)
-cos.t <- cos(2*pi*t)
-
-trainingTslm<-tslm(training.ts~t+t2+sin.t+cos.t)
+#sin.t <- sin(2*pi*t)
+#sin.t<-ts(sin.t, frequency=24)
+#cos.t <- cos(2*pi*t)
+#cos.t<-ts(cos.t,frequency=24)
+#trainingTslm<-tslm(training.ts~trend+season+t2+sin.t)
 #?tslm
 #sin.t<-2*pi*t
 summary(trainingTslm)
@@ -229,19 +238,24 @@ anova(trainingTslm)
 
 par(mfrow=c(1,1))
 plot(training.ts,col="gray",main="Fitted Data for TSLM Model")
-lines(c(1:length(training.ts)),trainingTslm$fitted.values,col="red")
+lines(trainingTslm$fitted.values,col="red")
 
 
 #lines(traingTslm,col="red",lwd=1)
 #abline(trainingTslm,col="red")
 #plot(trainingTslm$residuals)
 
+plot(trainingTslm$residuals)
 summary(trainingTslm$residuals)
 qqnorm(trainingTslm$residuals)
 qqline(trainingTslm$residuals)
 hist(trainingTslm$residuals)
 acf(trainingTslm$residuals)
+pacf(trainingTslm$residuals)
 
+# According to the residuals' acf and pacf, we know that apart from trend and seasonality, our data has autocorrelation cross time lags. Thus, ARMA model is needed.
+lag.plot(trainingTslm$residuals,lags=24,do.lines=FALSE)
+# We could observe a strong correlation at lag1, lag2, lag3 and lag4, demonstraing that our data has autocorrelations.
 
 #••Smothing method
 
@@ -305,6 +319,21 @@ qqline(trainingETS$residuals)
 hist(trainingETS$residuals, main="Histogram for ETS Model")
 acf(trainingETS$residuals, main="ACF for ETS Model")
 
+#••Machine Learning MODE
+#NNETAR MODEL
+trainingNN<-nnetar(training.ts)
+summary(trainingNN)
+summary(trainingNN$residuals)
+
+par(mfrow=c(1,1))
+plot(training.ts,col="gray",main="Fitted Data for NNETAR Model")
+lines(c(1:length(training.ts)),trainingNN$fitted,col="red")
+
+qqnorm(trainingNN$residuals, main="Notmal QQ Plot for NNETAR Model")
+qqline(trainingNN$residuals)
+hist(trainingNN$residuals, main="Histogram for NNETAR Model")
+acf(trainingNN$residuals, main="ACF for NNETAR Model")
+
 #••ARIMA MODEL
 acf(training.ts)
 pacf(training.ts)
@@ -315,81 +344,28 @@ pacf(diff(diff(training.ts,24)))
 diffTraining<-diff(diff(training.ts,24))
 summary(diffTraining)
 
-# Arima Model Selection Loop
-rm(RMSE)
-p1=p2=d1=d2=q1=q2=0
-RMSE.train=RMSE.test=i=1
-RMSE<-data.frame(p1,d1,q1,p2,d2,q2,RMSE.train,RMSE.test)
-for(p1 in 0:3)
-{
-  for(d1 in 0:0)
-  {
-    for(q1 in 0:3)
-    {
-      for(p2 in 0:3)
-      {
-        for(d2 in 0:0)
-        {
-          for(q2 in 0:3)
-          {
-            result = tryCatch({
-              # write your intended code here
-              
-            }, warning = function(w) {
-              # log the warning or take other action here
-            }, error = function(e) {
-              # log the error or take other action here
-            }, finally = {
-              # this will execute no matter what else happened
-              
-              findArima<-arima(training.ts,order=c(p1,d1,q1),seasonal=list(order=c(p2,d2,q2),peroid=frequency(training.ts)),method="ML")
-              RMSE[i,'p1']<-p1
-              RMSE[i,'d1']<-d1
-              RMSE[i,'q1']<-q1
-              RMSE[i,'p2']<-p2
-              RMSE[i,'d2']<-d2
-              RMSE[i,'q2']<-q2
-              RMSE[i,'RMSE.train']<-accuracy(forecast(findArima, h=length(testing.ts)),c(testing.ts))[1,"RMSE"]
-              RMSE[i,'RMSE.test']<-accuracy(forecast(findArima, h=length(testing.ts)),c(testing.ts))[2,"RMSE"]
-              print("Arima Model Number")
-              print(nrow(RMSE))
-              print("Non-seasonal Part:")
-              print(c(p1,d1,q1))
-              print("Seasonal Part:")
-              print(c(p2,d2,q2))
-              i<-i+1
-            })
-            
-            
-            #findArima<-arima(x,order=c(p1,d1,q1),seasonal=c(p2,d2,q2),method="ML")
-            #print(accuracy((forecast(findArima,lead=24))[,2],milk.test)[1,"RMSE"])
-          }
-        }
-      }
-    }
-  }
-}
+#Check if we have differenced training.ts to white noise
+plot(diffTraining)
 
-for(i in 2:nrow(RMSE))
-{
-  if(RMSE[i,'RMSE.test']<RMSE[i-1,'RMSE.test'])
-  {
-    RMSE.test.min<-RMSE[i,'RMSE.test']
-  }
-  else
-  {
-    RMSE.test.min<-RMSE[i-1,'RMSE.test']
-  }
-  if(RMSE[i,'RMSE.']<RMSE[i-1,'RMSE.train'])
-  {
-    RMSE.train.min<-RMSE[i,'RMSE.train']
-  }
-  else
-  {
-    RMSE.train.min<-RMSE[i-1,'RMSE.train']
-  }
-  
-}
+# The bad performance of linear regression shows that there is almost no trend or seasonality anymore.
+diffTrainingTslm<-tslm(diffTraining~trend+season)
+summary(diffTrainingTslm)
+
+qqnorm(diffTraining)
+qqline(diffTraining)
+
+#Use arma model to test reasonable p=2 and q=3 values observed from acf and pacf.
+#acf(diffTraining)
+#pacf(diffTraining)
+#ArmaDiffTraining<-arma(diffTraining,order=c(2,2))
+#summary(ArmaDiffTraining)
+
+#accuracy(ArmaDiffTraining$fitted.values,diffTraining)
+#forecastedARMA<-forecast(ArmaDiffTraining,diffTraining, h=length(testing.ts))
+#predictedARMA<-predict(ArmaDiffTraining,diffTraining,h=length(testing.ts))
+#accuracy(predictedARMA,diff(diff(testing.ts),24))
+
+
 
 #acf(seasadj(stl(training.ts,s.window="periodic")))
 #pacf(seasadj(stl(training.ts,s.window="periodic")))
@@ -446,6 +422,102 @@ hist(trainingARIMA$residuals, main="Histogram for autoARIMA Model")
 acf(trainingARIMA$residuals, main="ACF for autoARIMA Model")
 
 
+# Arima Model Selection Loop. The chooses of parameters depend on the result of auto.arima
+iterate.arima<-function(x,y,forecastPeriod)
+{
+rm(RMSE)
+p1=p2=d1=d2=q1=q2=0
+RMSE.train=RMSE.test=i=1
+RMSE<-data.frame(p1,d1,q1,p2,d2,q2,RMSE.train,RMSE.test)
+for(p1 in 0:4)
+{
+  for(d1 in 0:1)
+  {
+    for(q1 in 0:4)
+    {
+      for(p2 in 0:2)
+      {
+        for(d2 in 0:1)
+        {
+          for(q2 in 0:2)
+          {
+            result = tryCatch({
+              # write your intended code here
+              
+            }, warning = function(w) {
+              # log the warning or take other action here
+            }, error = function(e) {
+              # log the error or take other action here
+            }, finally = {
+              # this will execute no matter what else happened
+              
+              findArima<-arima(x,order=c(p1,d1,q1),seasonal=list(order=c(p2,d2,q2),peroid=frequency(x)),method="ML")
+              RMSE[i,'p1']<-p1
+              RMSE[i,'d1']<-d1
+              RMSE[i,'q1']<-q1
+              RMSE[i,'p2']<-p2
+              RMSE[i,'d2']<-d2
+              RMSE[i,'q2']<-q2
+              RMSE[i,'RMSE.train']<-accuracy(forecast(findArima, forecastPeriod),c(y))[1,"RMSE"]
+              RMSE[i,'RMSE.test']<-accuracy(forecast(findArima, forecastPeriod),c(y))[2,"RMSE"]
+              print("Arima Model Number")
+              print(nrow(RMSE))
+              print("Non-seasonal Part:")
+              print(c(p1,d1,q1))
+              print("Seasonal Part:")
+              print(c(p2,d2,q2))
+              print("Seasonal Period:")
+              print(frequency(x))
+              i<-i+1
+            })
+            
+            
+            #findArima<-arima(x,order=c(p1,d1,q1),seasonal=c(p2,d2,q2),method="ML")
+            #print(accuracy((forecast(findArima,lead=24))[,2],milk.test)[1,"RMSE"])
+          }
+        }
+      }
+    }
+  }
+}
+}
+iterate.arima(training.ts,testing.ts,length(testing.ts))
+
+
+
+find.arima<-function(x)
+{
+  
+
+for(i in 2:nrow(RMSE))
+{
+  if(RMSE[i,'RMSE.test']<RMSE[i-1,'RMSE.test'])
+  {
+    RMSE.test.min.index<-i
+  }
+  else
+  {
+    RMSE.test.min.index<-i-1
+  }
+  if(RMSE[i,'RMSE.train']<RMSE[i-1,'RMSE.train'])
+  {
+    RMSE.train.min.index<-i
+  }
+  else
+  {
+    RMSE.train.min.index<-i-1
+  }
+  
+}
+
+  print("Optimal ARIMA MODEL on Training:")
+  print(c(p=RMSE[RMSE.train.min.index,'p1'],d=RMSE[RMSE.train.min.index,'d1'],q=RMSE[RMSE.train.min.index,'q1'],sp=RMSE[RMSE.train.min.index,'p2'],sd=RMSE[RMSE.train.min.index,'d2'],sq=RMSE[RMSE.train.min.index,'q2'],m=frequency(x),RMSE.train=RMSE[RMSE.train.min.index,'RMSE.train'],RMSE.test=RMSE[RMSE.train.min.index,'RMSE.test']))
+  print("Optimal ARIMA MODEL on Testing:")
+  print(c(p=RMSE[RMSE.test.min.index,'p1'],d=RMSE[RMSE.test.min.index,'d1'],q=RMSE[RMSE.test.min.index,'q1'],sp=RMSE[RMSE.test.min.index,'p2'],sd=RMSE[RMSE.test.min.index,'d2'],sq=RMSE[RMSE.test.min.index,'q2'],m=frequency(x),RMSE.train=RMSE[RMSE.test.min.index,'RMSE.train'],RMSE.test=RMSE[RMSE.test.min.index,'RMSE.test']))
+  
+}
+find.arima(training.ts)
+
 # Model Validation
 
 # Prediction Benchmarks
@@ -487,6 +559,10 @@ plot(forecastedHW)
 forecastedETS<-forecast(ets(training.ts),h=length(testing.ts))
 accuracy(forecastedETS,c(testing.ts))
 plot(forecastedETS)
+
+forecastedNN<-forecast(trainingNN,h=length(testing.ts))
+accuracy(forecastedNN,c(testing.ts))
+plot(forecastedNN)
 
 forecastedARIMA<-forecast(trainingARIMA,h=length(testing.ts))
 accuracy(forecastedARIMA,c(testing.ts))
