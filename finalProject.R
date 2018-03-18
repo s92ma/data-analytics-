@@ -448,12 +448,15 @@ acf(trainingARIMA$residuals, main = "ACF for autoARIMA Model")
 # Arima Model Selection Loop. The chooses of parameters depend on the result of auto.arima
 # Initialization
 rm(RMSE)
+x=training.ts
+y=testing.ts
+forecastPeriod=length(testing.ts)
 p1 = p2 = d1 = d2 = q1 = q2 = 0
 RMSE.train = RMSE.test = i = 1
 RMSE <- data.frame(p1, d1, q1, p2, d2, q2, RMSE.train, RMSE.test)
 
-iterate.arima <- function(RMSE, x, y, forecastPeriod)
-{
+#iterate.arima <- function(RMSE, x, y, forecastPeriod)
+#{
   for (p1 in 0:4)
   {
     for (d1 in 0:1)
@@ -468,14 +471,6 @@ iterate.arima <- function(RMSE, x, y, forecastPeriod)
             {
               result = tryCatch({
                 # write your intended code here
-                
-              }, warning = function(w) {
-                # log the warning or take other action here
-              }, error = function(e) {
-                # log the error or take other action here
-              }, finally = {
-                # this will execute no matter what else happened
-                
                 findArima <-
                   arima(
                     x,
@@ -505,6 +500,14 @@ iterate.arima <- function(RMSE, x, y, forecastPeriod)
                 print("Seasonal Period:")
                 print(frequency(x))
                 i <- i + 1
+              }, warning = function(w) {
+                # log the warning or take other action here
+              }, error = function(e) {
+                # log the error or take other action here
+              }, finally = {
+                # this will execute no matter what else happened
+                
+                
               })
               
               
@@ -517,8 +520,8 @@ iterate.arima <- function(RMSE, x, y, forecastPeriod)
     }
   }
   
-}
-iterate.arima(RMSE, training.ts, testing.ts, length(testing.ts))
+#}
+#iterate.arima(RMSE, training.ts, testing.ts, length(testing.ts))
 
 
 
@@ -634,4 +637,4 @@ plot(forecastedARIMA)
 forecastedARIMA <- forecast(trainingARIMA, h = length(testing.ts))
 accuracy(forecastedARIMA, c(testing.ts))
 plot(forecastedARIMA)
-#plot.ts(forecastedARIMA) 
+#plot.ts(forecastedARIMA)
