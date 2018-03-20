@@ -7,27 +7,23 @@ library(stats)
 library(anytime)
 library(base)
 library(fpp)
-
 #Remove all the objects in R.
 #rm(list = ls())
 
-#•••Initial analysis of the data (plots, statistical analysis, etc..)
+# ••• Initial Analysis of the Data •••
 projectData <- read.csv("input_data_team_9.csv")
-#projectData<-read.csv("input_data_team_9_processed.csv")
 torontoData <-
   data.frame(Date = projectData[, 1],
              Hour = projectData[, 2],
              Toronto = projectData[, 8])
 torontoData.ts <- torontoData[-c(1:111072, 122017:128616),]
-#torontoDataDate<-torontoData[,1]
 torontoData.ts[, 3] <- ts(torontoData.ts[, 3])
-#torontoData.ts[,1]<-anytime::anydate(torontoData.ts[,1])
-#head(torontoData.ts)
 par(mfrow = c(1, 1))
 plot(torontoData.ts[, 3],
      xlab = "xth hour",
      ylab = "Electricity Demand",
      main = "Hourly Eletricity Demand in Toronto")
+
 #Substitute outliers with value of 0 using moving median method.
 for (index in 1:nrow(torontoData.ts))
 {
@@ -38,21 +34,7 @@ for (index in 1:nrow(torontoData.ts))
     print(index)
   }
 }
-#View(torontoData.ts)
-#for(index in 1:length(torontoData.ts))
-#{
-#  if(torontoData.ts[index]==0)
-#  {
-#    print(index)
-#  }
-#}
-#View(torontoData.ts)
-#projectData<-read.csv("input_data_team_9_processed.csv")
-#torontoData<-data.frame(Toronto=projectData[,8])
-#torontoData<-torontoData[-c(1:5880),]
-#torontoData.ts<-ts(torontoData)
-#plot(torontoData.ts,xlab="xth hour",ylab="Electricity Demand",main="Hourly Eletricity Demand in Toronto - Adjusted")
-#ts(torontoData[,2])
+
 acf(torontoData.ts[, 3], main = "ACF of Hourly Eletricity Demand in Toronto - Adjusted")
 find.freq <- function(x)
 {
@@ -83,12 +65,10 @@ find.freq <- function(x)
 #attr(torontoData.ts[,3],'frequency')<-24
 find.freq(torontoData.ts[, 3])
 torontoData.ts[, 3] = ts(torontoData.ts[, 3], frequency = find.freq(torontoData.ts[, 3]))
-#torontoData.ts<-ts(torontoData,frequency=24)
 plot(torontoData.ts[, 3], col = "blue")
 
 torontoData.ts.day <- aggregate(torontoData.ts[, 3], nfrequency = 1)
 plot(torontoData.ts.day, col = "blue")
-
 find.freq(torontoData.ts.day)
 torontoData.ts.day = ts(torontoData.ts.day, frequency = find.freq(torontoData.ts.day))
 
@@ -104,14 +84,6 @@ torontoData.ts.26week <-
   aggregate(torontoData.ts.week, nfrequency = 1)
 find.freq(torontoData.ts.26week)
 
-
-
-#torontoData.ts.dayTslm<-tslm(torontoData.ts.day~trend+season)
-#find.freq(torontoData.ts.day)
-
-#plot(torontoData.ts[,3],col="gray")
-
-
 torontoData.ts[, 3] <-
   ts(torontoData.ts[, 3], start = c(1, 1), frequency = 24)
 #is.ts(torontoData.ts[,2])
@@ -120,19 +92,7 @@ boxplot(torontoData.ts[, 3] ~ cycle(torontoData.ts[, 3]))
 #torontoData.ts.day<-aggregate(torontoData.ts,nfrequency=1)
 #plot(torontoData.ts.day)
 
-#??????????????????????Stationary has seasonality?
 acf(torontoData.ts[, 3], main = "ACF of Hourly Eletricity Demand in Toronto - Outliers Replaced")
-#adf.test(torontoData.ts[,3])
-#???? Do we need to forecast the future data even after forecasting the test set.
-#??????training performance = best V.S. test not = best
-#???? Arima loop consumes too much time. It needs at least 5+ hours for each execution.
-#6*6*6*6*6*6
-
-
-#TAKE THE LAST YEAR/TWO YEARS ONLY USE ONE YEAR
-#SHORT TERM PREDICTION, A MONTH OR COUPLE OF WEEKS
-#DIFFERENCING IS 0 OR 1, START WITH AUTO ARIMA, THEN ITERATE USING THE INSIGHTS FROM THIS
-
 
 # Use moving average to observe trend
 par(mfrow = c(2, 2))
@@ -148,13 +108,8 @@ plot(torontoData.ts[, 3], col = "gray", main = "1 Month Moving Average")
 lines(ma(torontoData.ts[, 3], order = 731),
       col = "green",
       lwd = 1)
-#par(mfrow = c(2,2))
-#plot(torontoData.ts, main = "Original Data")
-#plot(diff(torontoData.ts,1), main = "Detrended data")
-#plot(diff(torontoData.ts, 24), main = "Seasonally adjusted data")
-#plot (diff(diff(torontoData.ts,1), 24), main = "Seasonally adj. and detrended data")
 
-#•••statiscal analysis to our sample data
+# ••• Statiscal analysis to our sample data •••
 #plot(decompose(torontoData.ts))
 #plot(stl(torontoData.ts,s.window="periodic"))
 
@@ -170,9 +125,6 @@ lines(c(1:length(torontoData.ts[, 3])), sampleMean, col = "red", lty = 3)
 #Sample Median
 sampleMedian <- median(torontoData.ts[, 3])
 sampleMedian
-
-
-
 
 #Sample Mode
 getmode <- function(v) {
@@ -211,7 +163,6 @@ upperBound = seq(sampleMean + 2 * sampleSD,
 lines(c(1:length(torontoData.ts[, 3])), lowerBound, col = "red", lty = 2)
 lines(c(1:length(torontoData.ts[, 3])), upperBound, col = "red", lty = 2)
 
-
 #Sample CV
 CV = sqrt(var(torontoData.ts[, 3])) / mean(torontoData.ts[, 3])
 CV
@@ -220,24 +171,14 @@ CV
 returnToRisk = 1 / CV
 returnToRisk
 
-
-#summary(auto.arima(torontoData.ts,approximation = FALSE))
-#acf(torontoData.ts)
-#acf(diff(torontoData.ts))
-#acf(diff(diff(torontoData.ts),24))
-#acf(diff(diff(diff(torontoData.ts),24),168))
-
-
-
-#•••Dividing the data to a training set and a test set
+# ••• Dividing the data to a training set and a test set •••
 #View(torontoData.ts)
 training <- torontoData.ts[-c(8785:10944),]
 testing <- torontoData.ts[c(8785:10944),]
 training.ts <- ts(training[, 3], frequency = 24)
 testing.ts <- ts(testing[, 3], frequency = 24)
 
-
-#•••Modeling
+# ••• Model Selection and Fitting •••
 #••Linear Regression
 #View(training)
 acf(training.ts)
@@ -262,11 +203,6 @@ anova(trainingTslm)
 par(mfrow = c(1, 1))
 plot(training.ts, col = "gray", main = "Fitted Data for TSLM Model")
 lines(trainingTslm$fitted.values, col = "red")
-
-
-#lines(traingTslm,col="red",lwd=1)
-#abline(trainingTslm,col="red")
-#plot(trainingTslm$residuals)
 
 plot(trainingTslm$residuals)
 summary(trainingTslm$residuals)
@@ -377,60 +313,7 @@ summary(diffTrainingTslm)
 qqnorm(diffTraining)
 qqline(diffTraining)
 
-#Use arma model to test reasonable p=2 and q=3 values observed from acf and pacf.
-#acf(diffTraining)
-#pacf(diffTraining)
-#ArmaDiffTraining<-arma(diffTraining,order=c(2,2))
-#summary(ArmaDiffTraining)
-
-#accuracy(ArmaDiffTraining$fitted.values,diffTraining)
-#forecastedARMA<-forecast(ArmaDiffTraining,diffTraining, h=length(testing.ts))
-#predictedARMA<-predict(ArmaDiffTraining,diffTraining,h=length(testing.ts))
-#accuracy(predictedARMA,diff(diff(testing.ts),24))
-
-
-
-#acf(seasadj(stl(training.ts,s.window="periodic")))
-#pacf(seasadj(stl(training.ts,s.window="periodic")))
-#acf(diff(training.ts))
-#pacf(diff(training.ts))
-#acf(diff(diff(diff(diff(diff(diff(diff(diff(diff(diff(seasadj(stl(training,s.window="periodic"))),5),3),8),13),24),11),19),15),29))
-#find.freq(diff(seasadj(stl(training.ts,s.window="periodic"))))
-#find.freq(diff(diff(seasadj(stl(training,s.window="periodic"))),5))
-#find.freq(diff(diff(diff(seasadj(stl(training,s.window="periodic"))),5),3))
-#find.freq(diff(diff(diff(diff(seasadj(stl(training,s.window="periodic"))),5),3),8))
-#find.freq(diff(diff(diff(diff(diff(seasadj(stl(training,s.window="periodic"))),5),3),8),13))
-#find.freq(diff(diff(diff(diff(diff(diff(seasadj(stl(training,s.window="periodic"))),5),3),8),13),24))
-#find.freq(diff(diff(diff(diff(diff(diff(diff(seasadj(stl(training,s.window="periodic"))),5),3),8),13),24),11))
-#find.freq(diff(diff(diff(diff(diff(diff(diff(diff(seasadj(stl(training,s.window="periodic"))),5),3),8),13),24),11),19))
-#find.freq(diff(diff(diff(diff(diff(diff(diff(diff(diff(seasadj(stl(training,s.window="periodic"))),5),3),8),13),24),11),19),15))
-#find.freq(diff(diff(diff(diff(diff(diff(diff(diff(diff(diff(seasadj(stl(training,s.window="periodic"))),5),3),8),13),24),11),19),15),29))
-#acf(decompose(training)$x)
-#?decompose
-
-#plot(stl(training,s.window='periodic'))
-#acf(stl(training,s.window='periodic'))
-
-#pacf(training)
-
-#plot(decompose(diff(diff(training,24),1)))
-
-
-#pacf(diff(diff(diff(training),24),33))
-
-#acf(diff(diff(training,24)))
-#acf(diff(training,24))
-#acf(diff(training))
-
-
-#acf(diff(seasadj(stl(training,s.window='periodic'))))
-
-
-
-#trainingARIMA2<-arima(training.ts,order=c(2,0,3),seasonal=list(order=c(2,0,3),period=24))
-
-
-
+# AutoARIMA
 trainingARIMA <- auto.arima(training.ts, approximation = FALSE)
 summary(trainingARIMA)
 
@@ -444,8 +327,7 @@ qqline(trainingARIMA$residuals)
 hist(trainingARIMA$residuals, main = "Histogram for autoARIMA Model")
 acf(trainingARIMA$residuals, main = "ACF for autoARIMA Model")
 
-
-# Arima Model Selection Loop. The chooses of parameters depend on the result of auto.arima
+# Optimal Arima Model Selection Loop. The chooses of parameters depend on the result of auto.arima
 # Initialization
 rm(RMSE)
 x=training.ts
@@ -523,29 +405,27 @@ RMSE <- data.frame(p1, d1, q1, p2, d2, q2, RMSE.train, RMSE.test)
 #}
 #iterate.arima(RMSE, training.ts, testing.ts, length(testing.ts))
 
-
+RMSE.test.min.index=1
+RMSE.train.min.index=1
 
 find.arima <- function(x)
 {
   for (i in 2:nrow(RMSE))
   {
-    if (RMSE[i, 'RMSE.test'] < RMSE[i - 1, 'RMSE.test'])
+    if (RMSE[RMSE.test.min.index, 'RMSE.test'] > RMSE[i, 'RMSE.test'])
     {
       RMSE.test.min.index <- i
     }
     else
     {
-      RMSE.test.min.index <- i - 1
     }
-    if (RMSE[i, 'RMSE.train'] < RMSE[i - 1, 'RMSE.train'])
+    if (RMSE[RMSE.train.min.index, 'RMSE.train'] > RMSE[i, 'RMSE.train'])
     {
       RMSE.train.min.index <- i
     }
     else
     {
-      RMSE.train.min.index <- i - 1
     }
-    
   }
   
   print("Optimal ARIMA MODEL on Training:")
@@ -580,7 +460,18 @@ find.arima <- function(x)
 }
 find.arima(training.ts)
 
-# Model Validation
+optimalArima<-Arima(training.ts,order=c(2,0,1),seasonal=list(order=c(2,1,1)))
+par(mfrow = c(1, 1))
+plot(training.ts, col = "gray", main = "Fitted Data for OptimalARIMA Model")
+lines(c(1:length(training.ts)), optimalArima$fitted, col = "red")
+
+summary(optimalArima$residuals)
+qqnorm(optimalArima$residuals, main = "Notmal QQ Plot for autoARIMA Model")
+qqline(optimalArima$residuals)
+hist(optimalArima$residuals, main = "Histogram for autoARIMA Model")
+acf(optimalArima$residuals, main = "ACF for autoARIMA Model")
+
+# ••• Model Validation •••
 
 # Prediction Benchmarks
 meanfBenchmark <- meanf(training.ts, h = length(testing.ts))
@@ -599,8 +490,6 @@ rwfBenchmark <-
   rwf(training.ts, h = length(testing.ts), drift = TRUE)
 accuracy(rwfBenchmark, c(testing.ts))
 plot(rwfBenchmark)
-
-
 
 # Better models
 forecastedTslm <- forecast(trainingTslm, h = length(testing.ts))
@@ -637,4 +526,3 @@ plot(forecastedARIMA)
 forecastedARIMA <- forecast(trainingARIMA, h = length(testing.ts))
 accuracy(forecastedARIMA, c(testing.ts))
 plot(forecastedARIMA)
-#plot.ts(forecastedARIMA)
