@@ -492,54 +492,79 @@ acf(optimalArima$residuals, main = "ACF for autoARIMA Model")
 # ••• Model Validation •••
 
 # Prediction Benchmarks
+par(mfrow = c(1, 1))
+
 meanfBenchmark <- meanf(training.ts, h = length(testing.ts))
 accuracy(meanfBenchmark, c(testing.ts))
-plot(meanfBenchmark)
+plot(testing.ts, col = "gray", main = "Forecasted Data for Meanf Model")
+lines(c(1:length(testing.ts)), meanfBenchmark$mean, col="blue")
+plot(c(testing.ts),meanfBenchmark$mean,main="Forecasted Against Test Data Set (meanf)")
 
 naiveBenchmark <- naive(training.ts, h = length(testing.ts))
 accuracy(naiveBenchmark, c(testing.ts))
-plot(naiveBenchmark)
+plot(testing.ts, col = "gray", main = "Forecasted Data for Naive Model")
+lines(c(1:length(testing.ts)), naiveBenchmark$mean, col="blue")
+plot(c(testing.ts),naiveBenchmark$mean,main="Forecasted Against Test Data Set (naive)")
 
 snaiveBenchmark <- snaive(training.ts, h = length(testing.ts))
 accuracy(snaiveBenchmark, c(testing.ts))
-plot(snaiveBenchmark)
+plot(testing.ts, col = "gray", main = "Forecasted Data for SNaive Model")
+lines(c(1:length(testing.ts)), snaiveBenchmark$mean, col="blue")
+plot(c(testing.ts),snaiveBenchmark$mean,main="Forecasted Against Test Data Set (snaive)")
 
 rwfBenchmark <-
   rwf(training.ts, h = length(testing.ts), drift = TRUE)
 accuracy(rwfBenchmark, c(testing.ts))
-plot(rwfBenchmark)
+plot(testing.ts, col = "gray", main = "Forecasted Data for RWF Model")
+lines(c(1:length(testing.ts)), rwfBenchmark$mean, col="blue")
+plot(c(testing.ts),rwfBenchmark$mean,main="Forecasted Against Test Data Set (rwf)")
+
 
 # Better models
 forecastedTslm <- forecast(trainingTslm, h = length(testing.ts))
 accuracy(forecastedTslm, c(testing.ts))
-plot(forecastedTslm)
+plot(testing.ts, col = "gray", main = "Forecasted Data for RWF Model")
+lines(c(1:length(testing.ts)), rwfBenchmark$mean, col="blue")
+plot(c(testing.ts),rwfBenchmark$mean,main="Forecasted Against Test Data Set (rwf)")
 
 forecastedSES <-
   ses(training.ts, initial = "optimal", h = length(testing.ts))
 accuracy(forecastedSES, c(testing.ts))
-plot(forecastedSES)
+plot(testing.ts, col = "gray", main = "Forecasted Data for RWF Model")
+lines(c(1:length(testing.ts)), rwfBenchmark$mean, col="blue")
+plot(c(testing.ts),rwfBenchmark$mean,main="Forecasted Against Test Data Set (rwf)")
 
 forecastedHolt <-
   holt(training.ts, initial = "optimal", h = length(testing.ts))
 accuracy(forecastedHolt, c(testing.ts))
-plot(forecastedHolt)
+plot(testing.ts, col = "gray", main = "Forecasted Data for RWF Model")
+lines(c(1:length(testing.ts)), rwfBenchmark$mean, col="blue")
+plot(c(testing.ts),rwfBenchmark$mean,main="Forecasted Against Test Data Set (rwf)")
 
 forecastedHW <-
   hw(training.ts, initial = "optimal", h = length(testing.ts))
 accuracy(forecastedHW, c(testing.ts))
-plot(forecastedHW)
+plot(testing.ts, col = "gray", main = "Forecasted Data for RWF Model")
+lines(c(1:length(testing.ts)), rwfBenchmark$mean, col="blue")
+plot(c(testing.ts),rwfBenchmark$mean,main="Forecasted Against Test Data Set (rwf)")
 
 forecastedETS <- forecast(ets(training.ts), h = length(testing.ts))
 accuracy(forecastedETS, c(testing.ts))
-plot(forecastedETS)
+plot(testing.ts, col = "gray", main = "Forecasted Data for RWF Model")
+lines(c(1:length(testing.ts)), rwfBenchmark$mean, col="blue")
+plot(c(testing.ts),rwfBenchmark$mean,main="Forecasted Against Test Data Set (rwf)")
 
 forecastedNN <- forecast(trainingNN, h = length(testing.ts))
 accuracy(forecastedNN, c(testing.ts))
-plot(forecastedNN)
+plot(testing.ts, col = "gray", main = "Forecasted Data for RWF Model")
+lines(c(1:length(testing.ts)), rwfBenchmark$mean, col="blue")
+plot(c(testing.ts),rwfBenchmark$mean,main="Forecasted Against Test Data Set (rwf)")
 
 forecastedARIMA <- forecast(trainingARIMA, h = length(testing.ts))
 accuracy(forecastedARIMA, c(testing.ts))
-plot(forecastedARIMA)
+plot(testing.ts, col = "gray", main = "Forecasted Data for RWF Model")
+lines(c(1:length(testing.ts)), rwfBenchmark$mean, col="blue")
+plot(c(testing.ts),rwfBenchmark$mean,main="Forecasted Against Test Data Set (rwf)")
 
 #forecastedARIMA <- forecast(optimalArima, h = length(testing.ts))
 #accuracy(optimalArima, testing.ts)
