@@ -25,6 +25,10 @@ plot(torontoData.ts[, 3],
      main = "Hourly Eletricity Demand in Toronto")
 
 #Substitute outliers with value of 0 using moving median method.
+
+#boxOut<-boxplot(torontoData.ts$Toronto)
+#outliers<-boxOut$out
+
 for (index in 1:nrow(torontoData.ts))
 {
   if (torontoData.ts[index, 3] == 0)
@@ -33,6 +37,15 @@ for (index in 1:nrow(torontoData.ts))
       median(torontoData.ts[(index - 24):(index - 1), 3])
     print(index)
   }
+  #for(outlierIndex in 1:length(outliers))
+  #{
+  #  if (torontoData.ts[index, 3] == outliers[outlierIndex])
+  #  {
+  #    torontoData.ts[index, 3] <-
+  #      median(torontoData.ts[(index - 24):(index - 1), 3])
+  #    print(index)
+  #  }
+  #}
 }
 
 acf(torontoData.ts[, 3], main = "ACF of Hourly Eletricity Demand in Toronto - Adjusted")
@@ -291,7 +304,7 @@ lines(c(1:length(training.ts)), trainingNN$fitted, col = "red")
 qqnorm(trainingNN$residuals, main = "Notmal QQ Plot for NNETAR Model")
 qqline(trainingNN$residuals)
 hist(trainingNN$residuals, main = "Histogram for NNETAR Model")
-acf(trainingNN$residuals, main = "ACF for NNETAR Model")
+acf(trainingNN$residuals[-c(1:39)], main = "ACF for NNETAR Model")
 
 #••ARIMA MODEL
 acf(training.ts)
@@ -523,6 +536,6 @@ forecastedARIMA <- forecast(trainingARIMA, h = length(testing.ts))
 accuracy(forecastedARIMA, c(testing.ts))
 plot(forecastedARIMA)
 
-forecastedARIMA <- forecast(trainingARIMA, h = length(testing.ts))
-accuracy(forecastedARIMA, c(testing.ts))
-plot(forecastedARIMA)
+#forecastedARIMA <- forecast(optimalArima, h = length(testing.ts))
+#accuracy(optimalArima, testing.ts)
+#plot(forecastedARIMA)
