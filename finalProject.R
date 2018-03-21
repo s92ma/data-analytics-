@@ -16,7 +16,7 @@ torontoData <-
   data.frame(Date = projectData[, 1],
              Hour = projectData[, 2],
              Toronto = projectData[, 8])
-torontoData.ts <- torontoData[-c(1:111072, 122017:128616), ]
+torontoData.ts <- torontoData[-c(1:111072, 122017:128616),]
 torontoData.ts[, 3] <- ts(torontoData.ts[, 3])
 par(mfrow = c(1, 1))
 plot(torontoData.ts[, 3],
@@ -186,8 +186,8 @@ returnToRisk
 
 # ••• Dividing the data to a training set and a test set •••
 #View(torontoData.ts)
-training <- torontoData.ts[-c(8785:10944), ]
-testing <- torontoData.ts[c(8785:10944), ]
+training <- torontoData.ts[-c(8785:10944),]
+testing <- torontoData.ts[c(8785:10944),]
 training.ts <- ts(training[, 3], frequency = 24)
 testing.ts <- ts(testing[, 3], frequency = 24)
 
@@ -215,7 +215,8 @@ anova(trainingTslm)
 
 par(mfrow = c(1, 1))
 plot(training.ts, col = "gray", main = "Fitted Data for TSLM Model")
-lines(trainingTslm$fitted.values, col = "red")
+lines(trainingTslm$fitted, col = "red")
+plot(training.ts, trainingTslm$fitted, main = "Fitted Against Training (Tslm)")
 
 plot(trainingTslm$residuals)
 summary(trainingTslm$residuals)
@@ -239,6 +240,8 @@ summary(trainingSES$residuals)
 par(mfrow = c(1, 1))
 plot(training.ts, col = "gray", main = "Fitted Data for SES Model")
 lines(c(1:length(training.ts)), trainingSES$fitted, col = "red")
+plot(c(training.ts), trainingSES$fitted, main = "Fitted Against Training (SES)")
+
 
 qqnorm(trainingSES$residuals, main = "Normal QQ Plot for the SES Model")
 qqline(trainingSES$residuals)
@@ -257,6 +260,8 @@ summary(trainingHolt$residuals)
 par(mfrow = c(1, 1))
 plot(training.ts, col = "gray", main = "Fitted Data for HOLT Model")
 lines(c(1:length(training.ts)), trainingHolt$fitted, col = "red")
+plot(c(training.ts), trainingHolt$fitted, main = "Fitted Against Training (Holt)")
+
 
 qqnorm(trainingHolt$residuals, main = "Notmal QQ Plot for HOLT Model")
 qqline(trainingHolt$residuals)
@@ -271,6 +276,7 @@ summary(trainingHW$residuals)
 par(mfrow = c(1, 1))
 plot(training.ts, col = "gray", main = "Fitted Data for HW Model")
 lines(c(1:length(training.ts)), trainingHW$fitted, col = "red")
+plot(c(training.ts), trainingHW$fitted, main = "Fitted Against Training (HW)")
 
 qqnorm(trainingHW$residuals, main = "Notmal QQ Plot for HW Model")
 qqline(trainingHW$residuals)
@@ -285,6 +291,7 @@ summary(trainingETS$residuals)
 par(mfrow = c(1, 1))
 plot(training.ts, col = "gray", main = "Fitted Data for ETS Model")
 lines(c(1:length(training.ts)), trainingETS$fitted, col = "red")
+plot(c(training.ts), trainingETS$fitted, main = "Fitted Against Training (ETS)")
 
 qqnorm(trainingETS$residuals, main = "Notmal QQ Plot for ETS Model")
 qqline(trainingETS$residuals)
@@ -300,6 +307,7 @@ summary(trainingNN$residuals)
 par(mfrow = c(1, 1))
 plot(training.ts, col = "gray", main = "Fitted Data for NNETAR Model")
 lines(c(1:length(training.ts)), trainingNN$fitted, col = "red")
+plot(c(training.ts), trainingNN$fitted, main = "Fitted Against Training (NNETAR)")
 
 qqnorm(trainingNN$residuals, main = "Notmal QQ Plot for NNETAR Model")
 qqline(trainingNN$residuals)
@@ -333,6 +341,7 @@ summary(trainingARIMA)
 par(mfrow = c(1, 1))
 plot(training.ts, col = "gray", main = "Fitted Data for AutoARIMA Model")
 lines(c(1:length(training.ts)), trainingARIMA$fitted, col = "red")
+plot(c(training.ts), trainingARIMA$fitted, main = "Fitted Against Training (autoARIMA)")
 
 summary(trainingARIMA$residuals)
 qqnorm(trainingARIMA$residuals, main = "Notmal QQ Plot for autoARIMA Model")
@@ -365,7 +374,6 @@ for (p1 in 0:4)
           for (q2 in 0:2)
           {
             result = tryCatch({
-              # write your intended code here
               findArima <-
                 arima(
                   x,
@@ -475,19 +483,23 @@ find.arima <- function(x)
 }
 find.arima(training.ts)
 
+# OPTIMAL ARIMA MODEL FOUND BY ITERATING HUNDREDS OF COMBINITIONS OF PARAMETERS
 optimalArima <-
-  Arima(training.ts,
-        order = c(2, 0, 1),
-        seasonal = list(order = c(2, 1, 1)))
+  arima(
+    training.ts,
+    order = c(2, 0, 1),
+    seasonal = list(order = c(2, 1, 1), peroid = frequency(training.ts))
+  )
 par(mfrow = c(1, 1))
 plot(training.ts, col = "gray", main = "Fitted Data for OptimalARIMA Model")
-lines(c(1:length(training.ts)), optimalArima$fitted, col = "red")
+lines(c(1:length(training.ts)), fitted(optimalArima), col = "red")
+plot(c(training.ts), fitted(optimalArima), main = "Fitted Against Training (optimalARIMA)")
 
 summary(optimalArima$residuals)
-qqnorm(optimalArima$residuals, main = "Notmal QQ Plot for autoARIMA Model")
+qqnorm(optimalArima$residuals, main = "Notmal QQ Plot for optimalARIMA Model")
 qqline(optimalArima$residuals)
-hist(optimalArima$residuals, main = "Histogram for autoARIMA Model")
-acf(optimalArima$residuals, main = "ACF for autoARIMA Model")
+hist(optimalArima$residuals, main = "Histogram for optimalARIMA Model")
+acf(optimalArima$residuals, main = "ACF for optimalARIMA Model")
 
 # ••• Model Validation •••
 
@@ -496,76 +508,90 @@ par(mfrow = c(1, 1))
 
 meanfBenchmark <- meanf(training.ts, h = length(testing.ts))
 accuracy(meanfBenchmark, c(testing.ts))
+plot(meanfBenchmark)
 plot(testing.ts, col = "gray", main = "Forecasted Data for Meanf Model")
-lines(c(1:length(testing.ts)), meanfBenchmark$mean, col="blue")
-plot(c(testing.ts),meanfBenchmark$mean,main="Forecasted Against Test Data Set (meanf)")
+lines(c(1:length(testing.ts)), meanfBenchmark$mean, col = "blue")
+plot(c(testing.ts), meanfBenchmark$mean, main = "Forecasted Against Test Data Set (meanf)")
 
 naiveBenchmark <- naive(training.ts, h = length(testing.ts))
 accuracy(naiveBenchmark, c(testing.ts))
+plot(naiveBenchmark)
 plot(testing.ts, col = "gray", main = "Forecasted Data for Naive Model")
-lines(c(1:length(testing.ts)), naiveBenchmark$mean, col="blue")
-plot(c(testing.ts),naiveBenchmark$mean,main="Forecasted Against Test Data Set (naive)")
+lines(c(1:length(testing.ts)), naiveBenchmark$mean, col = "blue")
+plot(c(testing.ts), naiveBenchmark$mean, main = "Forecasted Against Test Data Set (naive)")
 
 snaiveBenchmark <- snaive(training.ts, h = length(testing.ts))
 accuracy(snaiveBenchmark, c(testing.ts))
+plot(snaiveBenchmark)
 plot(testing.ts, col = "gray", main = "Forecasted Data for SNaive Model")
-lines(c(1:length(testing.ts)), snaiveBenchmark$mean, col="blue")
-plot(c(testing.ts),snaiveBenchmark$mean,main="Forecasted Against Test Data Set (snaive)")
+lines(c(1:length(testing.ts)), snaiveBenchmark$mean, col = "blue")
+plot(c(testing.ts), snaiveBenchmark$mean, main = "Forecasted Against Test Data Set (snaive)")
 
 rwfBenchmark <-
   rwf(training.ts, h = length(testing.ts), drift = TRUE)
 accuracy(rwfBenchmark, c(testing.ts))
+plot(rwfBenchmark)
 plot(testing.ts, col = "gray", main = "Forecasted Data for RWF Model")
-lines(c(1:length(testing.ts)), rwfBenchmark$mean, col="blue")
-plot(c(testing.ts),rwfBenchmark$mean,main="Forecasted Against Test Data Set (rwf)")
-
+lines(c(1:length(testing.ts)), rwfBenchmark$mean, col = "blue")
+plot(c(testing.ts), rwfBenchmark$mean, main = "Forecasted Against Test Data Set (rwf)")
 
 # Better models
 forecastedTslm <- forecast(trainingTslm, h = length(testing.ts))
 accuracy(forecastedTslm, c(testing.ts))
-plot(testing.ts, col = "gray", main = "Forecasted Data for RWF Model")
-lines(c(1:length(testing.ts)), rwfBenchmark$mean, col="blue")
-plot(c(testing.ts),rwfBenchmark$mean,main="Forecasted Against Test Data Set (rwf)")
+plot(forecastedTslm)
+plot(testing.ts, col = "gray", main = "Forecasted Data for Tslm Model")
+lines(c(1:length(testing.ts)), forecastedTslm$mean, col = "blue")
+plot(c(testing.ts), forecastedTslm$mean, main = "Forecasted Against Test Data Set (Tslm)")
 
 forecastedSES <-
   ses(training.ts, initial = "optimal", h = length(testing.ts))
 accuracy(forecastedSES, c(testing.ts))
-plot(testing.ts, col = "gray", main = "Forecasted Data for RWF Model")
-lines(c(1:length(testing.ts)), rwfBenchmark$mean, col="blue")
-plot(c(testing.ts),rwfBenchmark$mean,main="Forecasted Against Test Data Set (rwf)")
+plot(forecastedSES)
+plot(testing.ts, col = "gray", main = "Forecasted Data for SES Model")
+lines(c(1:length(testing.ts)), forecastedSES$mean, col = "blue")
+plot(c(testing.ts), forecastedSES$mean, main = "Forecasted Against Test Data Set (SES)")
 
 forecastedHolt <-
   holt(training.ts, initial = "optimal", h = length(testing.ts))
 accuracy(forecastedHolt, c(testing.ts))
-plot(testing.ts, col = "gray", main = "Forecasted Data for RWF Model")
-lines(c(1:length(testing.ts)), rwfBenchmark$mean, col="blue")
-plot(c(testing.ts),rwfBenchmark$mean,main="Forecasted Against Test Data Set (rwf)")
+plot(forecastedHolt)
+plot(testing.ts, col = "gray", main = "Forecasted Data for Holt Model")
+lines(c(1:length(testing.ts)), forecastedHolt$mean, col = "blue")
+plot(c(testing.ts), forecastedHolt$mean, main = "Forecasted Against Test Data Set (Holt)")
 
 forecastedHW <-
   hw(training.ts, initial = "optimal", h = length(testing.ts))
 accuracy(forecastedHW, c(testing.ts))
-plot(testing.ts, col = "gray", main = "Forecasted Data for RWF Model")
-lines(c(1:length(testing.ts)), rwfBenchmark$mean, col="blue")
-plot(c(testing.ts),rwfBenchmark$mean,main="Forecasted Against Test Data Set (rwf)")
+plot(forecastedHW)
+plot(testing.ts, col = "gray", main = "Forecasted Data for HW Model")
+lines(c(1:length(testing.ts)), forecastedHW$mean, col = "blue")
+plot(c(testing.ts), forecastedHW$mean, main = "Forecasted Against Test Data Set (HW)")
 
 forecastedETS <- forecast(ets(training.ts), h = length(testing.ts))
 accuracy(forecastedETS, c(testing.ts))
-plot(testing.ts, col = "gray", main = "Forecasted Data for RWF Model")
-lines(c(1:length(testing.ts)), rwfBenchmark$mean, col="blue")
-plot(c(testing.ts),rwfBenchmark$mean,main="Forecasted Against Test Data Set (rwf)")
+plot(forecastedETS)
+plot(testing.ts, col = "gray", main = "Forecasted Data for ETS Model")
+lines(c(1:length(testing.ts)), forecastedETS$mean, col = "blue")
+plot(c(testing.ts), forecastedETS$mean, main = "Forecasted Against Test Data Set (ETS)")
 
 forecastedNN <- forecast(trainingNN, h = length(testing.ts))
 accuracy(forecastedNN, c(testing.ts))
-plot(testing.ts, col = "gray", main = "Forecasted Data for RWF Model")
-lines(c(1:length(testing.ts)), rwfBenchmark$mean, col="blue")
-plot(c(testing.ts),rwfBenchmark$mean,main="Forecasted Against Test Data Set (rwf)")
+plot(forecastedNN)
+plot(testing.ts, col = "gray", main = "Forecasted Data for NNETAR Model")
+lines(c(1:length(testing.ts)), forecastedNN$mean, col = "blue")
+plot(c(testing.ts), forecastedNN$mean, main = "Forecasted Against Test Data Set (NNETAR)")
 
 forecastedARIMA <- forecast(trainingARIMA, h = length(testing.ts))
 accuracy(forecastedARIMA, c(testing.ts))
-plot(testing.ts, col = "gray", main = "Forecasted Data for RWF Model")
-lines(c(1:length(testing.ts)), rwfBenchmark$mean, col="blue")
-plot(c(testing.ts),rwfBenchmark$mean,main="Forecasted Against Test Data Set (rwf)")
+plot(forecastedARIMA)
+plot(testing.ts, col = "gray", main = "Forecasted Data for autoARIMA Model")
+lines(c(1:length(testing.ts)), forecastedARIMA$mean, col = "blue")
+plot(c(testing.ts), forecastedARIMA$mean, main = "Forecasted Against Test Data Set (autoARIMA)")
 
-#forecastedARIMA <- forecast(optimalArima, h = length(testing.ts))
-#accuracy(optimalArima, testing.ts)
-#plot(forecastedARIMA)
+forecastedOptimalARIMA <-
+  forecast(optimalArima, h = length(testing.ts))
+accuracy(forecastedOptimalARIMA, c(testing.ts))
+plot(forecastedOptimalARIMA)
+plot(testing.ts, col = "gray", main = "Forecasted Data for optimalARIMA Model")
+lines(c(1:length(testing.ts)), forecastedOptimalARIMA$mean, col = "blue")
+plot(c(testing.ts), forecastedOptimalARIMA$mean, main = "Forecasted Against Test Data Set (optimalARIMA)")
