@@ -242,7 +242,8 @@ plot(training.ts, col = "gray", main = "Fitted Data for SES Model")
 lines(c(1:length(training.ts)), trainingSES$fitted, col = "red")
 plot(c(training.ts), trainingSES$fitted, main = "Fitted Against Training (SES)")
 
-
+plot(trainingSES$residuals)
+summary(trainingSES$residuals)
 qqnorm(trainingSES$residuals, main = "Normal QQ Plot for the SES Model")
 qqline(trainingSES$residuals)
 hist(trainingSES$residuals, main = "Histogram for SES Model")
@@ -262,7 +263,8 @@ plot(training.ts, col = "gray", main = "Fitted Data for HOLT Model")
 lines(c(1:length(training.ts)), trainingHolt$fitted, col = "red")
 plot(c(training.ts), trainingHolt$fitted, main = "Fitted Against Training (Holt)")
 
-
+plot(trainingHolt$residuals)
+summary(trainingHolt$residuals)
 qqnorm(trainingHolt$residuals, main = "Notmal QQ Plot for HOLT Model")
 qqline(trainingHolt$residuals)
 hist(trainingHolt$residuals, main = "Histogram for HOLT Model")
@@ -278,6 +280,8 @@ plot(training.ts, col = "gray", main = "Fitted Data for HW Model")
 lines(c(1:length(training.ts)), trainingHW$fitted, col = "red")
 plot(c(training.ts), trainingHW$fitted, main = "Fitted Against Training (HW)")
 
+plot(trainingHW$residuals)
+summary(trainingHW$residuals)
 qqnorm(trainingHW$residuals, main = "Notmal QQ Plot for HW Model")
 qqline(trainingHW$residuals)
 hist(trainingHW$residuals, main = "Histogram for HW Model")
@@ -293,6 +297,8 @@ plot(training.ts, col = "gray", main = "Fitted Data for ETS Model")
 lines(c(1:length(training.ts)), trainingETS$fitted, col = "red")
 plot(c(training.ts), trainingETS$fitted, main = "Fitted Against Training (ETS)")
 
+plot(trainingETS$residuals)
+summary(trainingETS$residuals)
 qqnorm(trainingETS$residuals, main = "Notmal QQ Plot for ETS Model")
 qqline(trainingETS$residuals)
 hist(trainingETS$residuals, main = "Histogram for ETS Model")
@@ -309,6 +315,8 @@ plot(training.ts, col = "gray", main = "Fitted Data for NNETAR Model")
 lines(c(1:length(training.ts)), trainingNN$fitted, col = "red")
 plot(c(training.ts), trainingNN$fitted, main = "Fitted Against Training (NNETAR)")
 
+plot(trainingNN$residuals)
+summary(trainingNN$residuals)
 qqnorm(trainingNN$residuals, main = "Notmal QQ Plot for NNETAR Model")
 qqline(trainingNN$residuals)
 hist(trainingNN$residuals, main = "Histogram for NNETAR Model")
@@ -343,6 +351,7 @@ plot(training.ts, col = "gray", main = "Fitted Data for AutoARIMA Model")
 lines(c(1:length(training.ts)), trainingARIMA$fitted, col = "red")
 plot(c(training.ts), trainingARIMA$fitted, main = "Fitted Against Training (autoARIMA)")
 
+plot(trainingARIMA$residuals)
 summary(trainingARIMA$residuals)
 qqnorm(trainingARIMA$residuals, main = "Notmal QQ Plot for autoARIMA Model")
 qqline(trainingARIMA$residuals)
@@ -352,9 +361,6 @@ acf(trainingARIMA$residuals, main = "ACF for autoARIMA Model")
 # Optimal Arima Model Selection Loop. The chooses of parameters depend on the result of auto.arima
 # Initialization
 rm(RMSE)
-x = training.ts
-y = testing.ts
-forecastPeriod = length(testing.ts)
 p1 = p2 = d1 = d2 = q1 = q2 = 0
 RMSE.train = RMSE.test = i = 1
 RMSE <- data.frame(p1, d1, q1, p2, d2, q2, RMSE.train, RMSE.test)
@@ -376,11 +382,11 @@ for (p1 in 0:4)
             result = tryCatch({
               findArima <-
                 arima(
-                  x,
+                  training.ts,
                   order = c(p1, d1, q1),
                   seasonal = list(
                     order = c(p2, d2, q2),
-                    peroid = frequency(x)
+                    peroid = frequency(training.ts)
                   ),
                   method = "ML"
                 )
@@ -391,9 +397,9 @@ for (p1 in 0:4)
               RMSE[i, 'd2'] <- d2
               RMSE[i, 'q2'] <- q2
               RMSE[i, 'RMSE.train'] <-
-                accuracy(forecast(findArima, forecastPeriod), c(y))[1, "RMSE"]
+                accuracy(forecast(findArima, length(testing.ts)), c(testing.ts))[1, "RMSE"]
               RMSE[i, 'RMSE.test'] <-
-                accuracy(forecast(findArima, forecastPeriod), c(y))[2, "RMSE"]
+                accuracy(forecast(findArima, length(testing.ts)), c(testing.ts))[2, "RMSE"]
               print("Arima Model Number")
               print(nrow(RMSE))
               print("Non-seasonal Part:")
@@ -409,11 +415,7 @@ for (p1 in 0:4)
               # log the error or take other action here
             }, finally = {
               # this will execute no matter what else happened
-              
-              
             })
-            
-            
             #findArima<-arima(x,order=c(p1,d1,q1),seasonal=c(p2,d2,q2),method="ML")
             #print(accuracy((forecast(findArima,lead=24))[,2],milk.test)[1,"RMSE"])
           }
@@ -422,7 +424,6 @@ for (p1 in 0:4)
     }
   }
 }
-
 #}
 #iterate.arima(RMSE, training.ts, testing.ts, length(testing.ts))
 
@@ -484,17 +485,20 @@ find.arima <- function(x)
 find.arima(training.ts)
 
 # OPTIMAL ARIMA MODEL FOUND BY ITERATING HUNDREDS OF COMBINITIONS OF PARAMETERS
+#???????????
 optimalArima <-
   arima(
     training.ts,
     order = c(2, 0, 1),
-    seasonal = list(order = c(2, 1, 1), peroid = frequency(training.ts))
+    seasonal = list(order = c(2, 1, 1), peroid = frequency(training.ts),method="ML")
   )
+summary(optimalArima)
 par(mfrow = c(1, 1))
 plot(training.ts, col = "gray", main = "Fitted Data for OptimalARIMA Model")
 lines(c(1:length(training.ts)), fitted(optimalArima), col = "red")
 plot(c(training.ts), fitted(optimalArima), main = "Fitted Against Training (optimalARIMA)")
 
+plot(optimalArima$residuals)
 summary(optimalArima$residuals)
 qqnorm(optimalArima$residuals, main = "Notmal QQ Plot for optimalARIMA Model")
 qqline(optimalArima$residuals)
