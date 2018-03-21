@@ -16,7 +16,7 @@ torontoData <-
   data.frame(Date = projectData[, 1],
              Hour = projectData[, 2],
              Toronto = projectData[, 8])
-torontoData.ts <- torontoData[-c(1:111072, 122017:128616),]
+torontoData.ts <- torontoData[-c(1:111072, 122017:128616), ]
 torontoData.ts[, 3] <- ts(torontoData.ts[, 3])
 par(mfrow = c(1, 1))
 plot(torontoData.ts[, 3],
@@ -186,8 +186,8 @@ returnToRisk
 
 # ••• Dividing the data to a training set and a test set •••
 #View(torontoData.ts)
-training <- torontoData.ts[-c(8785:10944),]
-testing <- torontoData.ts[c(8785:10944),]
+training <- torontoData.ts[-c(8785:10944), ]
+testing <- torontoData.ts[c(8785:10944), ]
 training.ts <- ts(training[, 3], frequency = 24)
 testing.ts <- ts(testing[, 3], frequency = 24)
 
@@ -343,83 +343,83 @@ acf(trainingARIMA$residuals, main = "ACF for autoARIMA Model")
 # Optimal Arima Model Selection Loop. The chooses of parameters depend on the result of auto.arima
 # Initialization
 rm(RMSE)
-x=training.ts
-y=testing.ts
-forecastPeriod=length(testing.ts)
+x = training.ts
+y = testing.ts
+forecastPeriod = length(testing.ts)
 p1 = p2 = d1 = d2 = q1 = q2 = 0
 RMSE.train = RMSE.test = i = 1
 RMSE <- data.frame(p1, d1, q1, p2, d2, q2, RMSE.train, RMSE.test)
 
 #iterate.arima <- function(RMSE, x, y, forecastPeriod)
 #{
-  for (p1 in 0:4)
+for (p1 in 0:4)
+{
+  for (d1 in 0:1)
   {
-    for (d1 in 0:1)
+    for (q1 in 0:4)
     {
-      for (q1 in 0:4)
+      for (p2 in 0:2)
       {
-        for (p2 in 0:2)
+        for (d2 in 0:1)
         {
-          for (d2 in 0:1)
+          for (q2 in 0:2)
           {
-            for (q2 in 0:2)
-            {
-              result = tryCatch({
-                # write your intended code here
-                findArima <-
-                  arima(
-                    x,
-                    order = c(p1, d1, q1),
-                    seasonal = list(
-                      order = c(p2, d2, q2),
-                      peroid = frequency(x)
-                    ),
-                    method = "ML"
-                  )
-                RMSE[i, 'p1'] <- p1
-                RMSE[i, 'd1'] <- d1
-                RMSE[i, 'q1'] <- q1
-                RMSE[i, 'p2'] <- p2
-                RMSE[i, 'd2'] <- d2
-                RMSE[i, 'q2'] <- q2
-                RMSE[i, 'RMSE.train'] <-
-                  accuracy(forecast(findArima, forecastPeriod), c(y))[1, "RMSE"]
-                RMSE[i, 'RMSE.test'] <-
-                  accuracy(forecast(findArima, forecastPeriod), c(y))[2, "RMSE"]
-                print("Arima Model Number")
-                print(nrow(RMSE))
-                print("Non-seasonal Part:")
-                print(c(p1, d1, q1))
-                print("Seasonal Part:")
-                print(c(p2, d2, q2))
-                print("Seasonal Period:")
-                print(frequency(x))
-                i <- i + 1
-              }, warning = function(w) {
-                # log the warning or take other action here
-              }, error = function(e) {
-                # log the error or take other action here
-              }, finally = {
-                # this will execute no matter what else happened
-                
-                
-              })
+            result = tryCatch({
+              # write your intended code here
+              findArima <-
+                arima(
+                  x,
+                  order = c(p1, d1, q1),
+                  seasonal = list(
+                    order = c(p2, d2, q2),
+                    peroid = frequency(x)
+                  ),
+                  method = "ML"
+                )
+              RMSE[i, 'p1'] <- p1
+              RMSE[i, 'd1'] <- d1
+              RMSE[i, 'q1'] <- q1
+              RMSE[i, 'p2'] <- p2
+              RMSE[i, 'd2'] <- d2
+              RMSE[i, 'q2'] <- q2
+              RMSE[i, 'RMSE.train'] <-
+                accuracy(forecast(findArima, forecastPeriod), c(y))[1, "RMSE"]
+              RMSE[i, 'RMSE.test'] <-
+                accuracy(forecast(findArima, forecastPeriod), c(y))[2, "RMSE"]
+              print("Arima Model Number")
+              print(nrow(RMSE))
+              print("Non-seasonal Part:")
+              print(c(p1, d1, q1))
+              print("Seasonal Part:")
+              print(c(p2, d2, q2))
+              print("Seasonal Period:")
+              print(frequency(x))
+              i <- i + 1
+            }, warning = function(w) {
+              # log the warning or take other action here
+            }, error = function(e) {
+              # log the error or take other action here
+            }, finally = {
+              # this will execute no matter what else happened
               
               
-              #findArima<-arima(x,order=c(p1,d1,q1),seasonal=c(p2,d2,q2),method="ML")
-              #print(accuracy((forecast(findArima,lead=24))[,2],milk.test)[1,"RMSE"])
-            }
+            })
+            
+            
+            #findArima<-arima(x,order=c(p1,d1,q1),seasonal=c(p2,d2,q2),method="ML")
+            #print(accuracy((forecast(findArima,lead=24))[,2],milk.test)[1,"RMSE"])
           }
         }
       }
     }
   }
-  
+}
+
 #}
 #iterate.arima(RMSE, training.ts, testing.ts, length(testing.ts))
 
-RMSE.test.min.index=1
-RMSE.train.min.index=1
+RMSE.test.min.index = 1
+RMSE.train.min.index = 1
 
 find.arima <- function(x)
 {
@@ -431,6 +431,7 @@ find.arima <- function(x)
     }
     else
     {
+      
     }
     if (RMSE[RMSE.train.min.index, 'RMSE.train'] > RMSE[i, 'RMSE.train'])
     {
@@ -438,6 +439,7 @@ find.arima <- function(x)
     }
     else
     {
+      
     }
   }
   
@@ -473,7 +475,10 @@ find.arima <- function(x)
 }
 find.arima(training.ts)
 
-optimalArima<-Arima(training.ts,order=c(2,0,1),seasonal=list(order=c(2,1,1)))
+optimalArima <-
+  Arima(training.ts,
+        order = c(2, 0, 1),
+        seasonal = list(order = c(2, 1, 1)))
 par(mfrow = c(1, 1))
 plot(training.ts, col = "gray", main = "Fitted Data for OptimalARIMA Model")
 lines(c(1:length(training.ts)), optimalArima$fitted, col = "red")
