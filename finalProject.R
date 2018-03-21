@@ -16,7 +16,7 @@ torontoData <-
   data.frame(Date = projectData[, 1],
              Hour = projectData[, 2],
              Toronto = projectData[, 8])
-torontoData.ts <- torontoData[-c(1:111072, 122017:128616),]
+torontoData.ts <- torontoData[-c(1:111072, 122017:128616), ]
 torontoData.ts[, 3] <- ts(torontoData.ts[, 3])
 par(mfrow = c(1, 1))
 plot(torontoData.ts[, 3],
@@ -186,8 +186,8 @@ returnToRisk
 
 # ••• Dividing the data to a training set and a test set •••
 #View(torontoData.ts)
-training <- torontoData.ts[-c(8785:10944),]
-testing <- torontoData.ts[c(8785:10944),]
+training <- torontoData.ts[-c(8785:10944), ]
+testing <- torontoData.ts[c(8785:10944), ]
 training.ts <- ts(training[, 3], frequency = 24)
 testing.ts <- ts(testing[, 3], frequency = 24)
 
@@ -490,7 +490,11 @@ optimalArima <-
   arima(
     training.ts,
     order = c(2, 0, 1),
-    seasonal = list(order = c(2, 1, 1), peroid = frequency(training.ts),method="ML")
+    seasonal = list(
+      order = c(2, 1, 1),
+      peroid = frequency(training.ts),
+      method = "ML"
+    )
   )
 summary(optimalArima)
 par(mfrow = c(1, 1))
