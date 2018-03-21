@@ -386,7 +386,7 @@ for (p1 in 0:4)
                   order = c(p1, d1, q1),
                   seasonal = list(
                     order = c(p2, d2, q2),
-                    peroid = frequency(training.ts)
+                    period = frequency(training.ts)
                   ),
                   method = "ML"
                 )
