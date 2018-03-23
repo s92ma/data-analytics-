@@ -485,17 +485,8 @@ find.arima <- function(x)
 find.arima(training.ts)
 
 # OPTIMAL ARIMA MODEL FOUND BY ITERATING HUNDREDS OF COMBINITIONS OF PARAMETERS
-#???????????
-optimalArima <-
-  arima(
-    training.ts,
-    order = c(2, 0, 1),
-    seasonal = list(
-      order = c(2, 1, 1),
-      peroid = frequency(training.ts),
-      method = "ML"
-    )
-  )
+optimalArima<-arima(training.ts,order=c(2,0,1),seasonal=list(order=c(2,1,1),period=24),method="ML")
+
 summary(optimalArima)
 par(mfrow = c(1, 1))
 plot(training.ts, col = "gray", main = "Fitted Data for OptimalARIMA Model")
