@@ -603,3 +603,5 @@ plot(forecastedOptimalARIMA)
 plot(testing.ts, col = "gray", main = "Forecasted Data for optimalARIMA Model")
 lines(c(1:length(testing.ts)), forecastedOptimalARIMA$mean, col = "blue")
 plot(c(testing.ts), forecastedOptimalARIMA$mean, main = "Forecasted Against Test Data Set (optimalARIMA)")
+
+write.csv(forecastedOptimalARIMA$mean, file = "output_team_9.csv")
