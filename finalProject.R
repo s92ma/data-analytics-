@@ -84,22 +84,22 @@ find.freq(torontoData.ts[, 3])
 torontoData.ts[, 3] = ts(torontoData.ts[, 3], frequency = find.freq(torontoData.ts[, 3]))
 plot(torontoData.ts[, 3], col = "blue")
 
-torontoData.ts.day <- aggregate(torontoData.ts[, 3], nfrequency = 1)
-plot(torontoData.ts.day, col = "blue")
-find.freq(torontoData.ts.day)
-torontoData.ts.day = ts(torontoData.ts.day, frequency = find.freq(torontoData.ts.day))
+#torontoData.ts.day <- aggregate(torontoData.ts[, 3], nfrequency = 1)
+#plot(torontoData.ts.day, col = "blue")
+#find.freq(torontoData.ts.day)
+#torontoData.ts.day = ts(torontoData.ts.day, frequency = find.freq(torontoData.ts.day))
 
-torontoData.ts.week <- aggregate(torontoData.ts.day, nfrequency = 1)
-plot(torontoData.ts.week, col = "blue")
+#torontoData.ts.week <- aggregate(torontoData.ts.day, nfrequency = 1)
+#plot(torontoData.ts.week, col = "blue")
 
-find.freq(torontoData.ts.week)
-length(torontoData.ts[, 3]) / 24 / 7
+#find.freq(torontoData.ts.week)
+#length(torontoData.ts[, 3]) / 24 / 7
 
-torontoData.ts.week = ts(torontoData.ts.week, frequency = find.freq(torontoData.ts.week))
+#torontoData.ts.week = ts(torontoData.ts.week, frequency = find.freq(torontoData.ts.week))
 
-torontoData.ts.26week <-
-  aggregate(torontoData.ts.week, nfrequency = 1)
-find.freq(torontoData.ts.26week)
+#torontoData.ts.26week <-
+#  aggregate(torontoData.ts.week, nfrequency = 1)
+#find.freq(torontoData.ts.26week)
 
 torontoData.ts[, 3] <-
   ts(torontoData.ts[, 3], start = c(1, 1), frequency = 24)
