@@ -28,7 +28,7 @@ plot(torontoData.ts[, 3],
      ylab = "Electricity Demand",
      main = "Hourly Eletricity Demand in Toronto")
 
-#Substitute outliers with value of 0 using moving median method.
+#Substitute outliers whose value is 0 with their corresponding moving medians.
 
 #boxOut<-boxplot(torontoData.ts$Toronto)
 #outliers<-boxOut$out
