@@ -339,12 +339,11 @@ summary(diffTraining)
 #Check if we have differenced training.ts to white noise
 plot(diffTraining)
 
-# The bad performance of linear regression shows that there is almost no trend or seasonality anymore.
 diffTrainingTslm <- tslm(diffTraining ~ trend + season)
 summary(diffTrainingTslm)
+# The bad performance of the linear regression using the differenced data shows that there is almost no trend or seasonality anymore. Which means the linear regression model has well captured the trend and seasonality.
 
-qqnorm(diffTraining)
-qqline(diffTraining)
+
 
 # AutoARIMA
 trainingARIMA <- auto.arima(training.ts, approximation = FALSE)
