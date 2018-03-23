@@ -16,7 +16,11 @@ torontoData <-
   data.frame(Date = projectData[, 1],
              Hour = projectData[, 2],
              Toronto = projectData[, 8])
+
+#A sub-range of the data from January 1, 2016 to December 31, 2016 was extracted as the training data set for further analysis. Our testing data set consists of the demand data from January 1, 2017 to March 30, 2017.
 torontoData.ts <- torontoData[-c(1:111072, 122017:128616),]
+
+#Convert our sample data set into a time series sample data set.
 torontoData.ts[, 3] <- ts(torontoData.ts[, 3])
 par(mfrow = c(1, 1))
 plot(torontoData.ts[, 3],
