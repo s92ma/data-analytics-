@@ -1,0 +1,77 @@
+‘…
+Set ObjConnection = fnGetConnection(strFilePath)
+Set objTransitsRecordSet = fnGetRecordSet(objConnection, strQuery)
+
+Do Until objTransitsRecordSet. EOF
+
+	strQuery = “SELECT * FROM [GRANDFATHER_ACCOUNTS$] WHERE I_TRANSITNUMBER = ‘” & Trim(objTransitsRecordSet(“I_TRANSITNUMBER"))&""
+
+	Set objAccountsRecordSet = fnGetRecordSet(objConnection, strQuery)
+    
+    fn_CheckBusySignal
+    Window("COINS").Type MicIns
+    
+    fn_CheckBusySignal
+    
+    reply=fn_ValidatePanelTitle("PMPN001")
+    Window("COINS").Type micF1
+    Do Until objAccountsRecordSet.EOF
+    	If Trim(objAccountsRecordSet("Execution"))="YES" Then
+        	If Trim(objAccountsRecordSet("I_INITIALBALANCE"))<>"" Then
+            	fn_CheckBusySignal()
+                reply=fn_ValidatePanelTitle("uBDT")
+                Dim transitNum, accountNum
+                accountNum=Trim(objAccountsRecordSet("I_ACCOUNTNUMBER"))
+                transitNum=Trim(objAccountsRecordSet("I_TRANSITNUMBER"))
+                Dim tempControl
+                tempControl=0
+                While tempControl<9
+                	wait(0.5)
+                	Window("COINS").Type micTab
+                	tempControl=tempControl + 1
+                Wend
+                Window("COINS").Type transitNum
+                Window("COINS").Type accountNum
+                If len(accountNum)<7 Then
+                	Window("COINS").Type micTab
+                End If
+                Window("COINS").Type micTab
+                
+                dim balanceCheck
+                balanceCheck=left(Trim(objAccountsRecordSet("I_INITIALBALANCE")),1)
+                If balanceCheck = "-" Then
+                	Window("COINS").Type "WD"
+                    Window("COINS").Type micTab
+                Else
+                	Window("COINS").Type "DEP"
+                End If
+                
+                Dim arrbalance, balance
+                arrbalance = Split(Replace(Trim(objAccountsRet("I_INITIALBALANCE")),"-",""),",")
+                balance = arrbalance(0) & ".00"
+                Window("COINS").Type micReturn
+                fn_CheckBusySignal()
+                If Trim(fnGetRegionFromCOINS(2,1,2,26))="TRANSACTION NOT SUCCESSFUL" Then
+                	If Trim(fnGetRegionFromCOINS(15,4,15,26))="TRANSACTION NOT SUCCESSFUL" Then
+                    	Window("COINS").Type micPgUp
+                        reply=fn_OverrideEntry(Trim(objAccountsRecordSet("ID")),Trim(objAccountsRecordSet("PASSWORD")))
+                    End If
+                End If
+                
+                reply = fn_ValidatePanelInfo("uTSP")
+                If reply = "Pass" Then
+                	objAccountsRecordSet("I_IBSTATUS") = "INITIAL BALANCE ADDED"
+                    objAccountsRecordSet("Execution") = "NO"
+                    objAccountsRecordSet.Update
+                Else
+                	objAccountsRecordSet("I_IBSTatus")="INITIAL BALANCE FAILED TO ADD"
+                    objAccountsRecordSet.Update
+                End If
+            End If
+        End If
+        objAccountsRecordSet.MoveNext
+    Loop
+    objTransitsRecordSet.MoveNext
+Loop
+                
+
